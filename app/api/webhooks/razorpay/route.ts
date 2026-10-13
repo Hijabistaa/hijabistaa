@@ -98,12 +98,18 @@ export async function POST(req: Request) {
         console.log(`[Razorpay Webhook]: Processing payment.failed for payment ${razorpayPaymentId}, reason: ${errorDescription}`)
 
         if (internalOrderId) {
+          // One Razorpay order can have several payment attempts. A UPI attempt
+          // the customer abandons only fails once its timeout expires, which can
+          // be minutes AFTER they've already paid by another method — so this
+          // event can arrive for an order that's already paid. Never let it
+          // overwrite that.
           const { error: updateErr } = await supabaseAdmin
             .from('orders')
             .update({
               payment_status: 'failed',
             })
             .eq('id', internalOrderId)
+            .neq('payment_status', 'paid')
 
           if (updateErr) {
             console.error('[Razorpay Webhook Error]: DB update failed for payment.failed:', updateErr.message)
