@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 
 async function checkAdminAuth(supabase: any) {
@@ -77,9 +78,11 @@ export async function getHeroSlides() {
 }
 
 export async function createHeroSlide(imageUrl: string, position: string = 'global') {
-  const supabase = await createClient()
-  const isAdmin = await checkAdminAuth(supabase)
+  const authClient = await createClient()
+  const isAdmin = await checkAdminAuth(authClient)
   if (!isAdmin) return { success: false, error: 'Unauthorized' }
+  // RLS rejects the admin session, so write with the service-role client
+  const supabase = createAdminClient()
 
   const newSlide = {
     id: `slide-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 6)}`,
@@ -161,9 +164,11 @@ export async function createHeroSlide(imageUrl: string, position: string = 'glob
 }
 
 export async function deleteHeroSlide(id: string) {
-  const supabase = await createClient()
-  const isAdmin = await checkAdminAuth(supabase)
+  const authClient = await createClient()
+  const isAdmin = await checkAdminAuth(authClient)
   if (!isAdmin) return { success: false, error: 'Unauthorized' }
+  // RLS rejects the admin session, so write with the service-role client
+  const supabase = createAdminClient()
 
   // 1. Always update local lib/db.json first
   try {
@@ -192,9 +197,11 @@ export async function deleteHeroSlide(id: string) {
 }
 
 export async function toggleHeroSlideStatus(id: string, isActive: boolean) {
-  const supabase = await createClient()
-  const isAdmin = await checkAdminAuth(supabase)
+  const authClient = await createClient()
+  const isAdmin = await checkAdminAuth(authClient)
   if (!isAdmin) return { success: false, error: 'Unauthorized' }
+  // RLS rejects the admin session, so write with the service-role client
+  const supabase = createAdminClient()
 
   // 1. Always update local lib/db.json first
   try {
@@ -261,9 +268,11 @@ export async function getHeroText(): Promise<HeroTextConfig> {
 }
 
 export async function updateHeroText(config: HeroTextConfig) {
-  const supabase = await createClient()
-  const isAdmin = await checkAdminAuth(supabase)
+  const authClient = await createClient()
+  const isAdmin = await checkAdminAuth(authClient)
   if (!isAdmin) return { success: false, error: 'Unauthorized' }
+  // RLS rejects the admin session, so write with the service-role client
+  const supabase = createAdminClient()
 
   // 1. Always update local lib/db.json first
   try {

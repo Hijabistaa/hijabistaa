@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 
 export type ActionResult = {
@@ -33,12 +34,13 @@ export async function addTestimonial(
   formData: FormData
 ): Promise<ActionResult> {
   try {
-    const supabase = await createClient()
-
-    const isAdmin = await checkAdminAuth(supabase)
+    const authClient = await createClient()
+    const isAdmin = await checkAdminAuth(authClient)
     if (!isAdmin) {
       return { error: 'Unauthorized. Admin access required.' }
     }
+    // RLS rejects the admin session, so write with the service-role client
+    const supabase = createAdminClient()
 
     const name = formData.get('name') as string
     const city = formData.get('city') as string
@@ -78,12 +80,13 @@ export async function deleteTestimonial(
   formData: FormData
 ): Promise<ActionResult> {
   try {
-    const supabase = await createClient()
-
-    const isAdmin = await checkAdminAuth(supabase)
+    const authClient = await createClient()
+    const isAdmin = await checkAdminAuth(authClient)
     if (!isAdmin) {
       return { error: 'Unauthorized. Admin access required.' }
     }
+    // RLS rejects the admin session, so write with the service-role client
+    const supabase = createAdminClient()
 
     const id = formData.get('id') as string
     if (!id) return { error: 'ID is required.' }

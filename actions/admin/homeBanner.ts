@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { PromoPopupConfig, DEFAULT_PROMO_POPUP } from '@/lib/promo'
 
@@ -36,9 +37,11 @@ export async function getHomeBannerEnabled(): Promise<boolean> {
 }
 
 export async function setHomeBannerEnabled(enabled: boolean) {
-  const supabase = await createClient()
-  const isAdmin = await checkAdminAuth(supabase)
+  const authClient = await createClient()
+  const isAdmin = await checkAdminAuth(authClient)
   if (!isAdmin) return { success: false, error: 'Unauthorized' }
+  // RLS rejects the admin session, so write with the service-role client
+  const supabase = createAdminClient()
 
   const { error } = await supabase
     .from('settings')
@@ -65,9 +68,11 @@ export async function getHomeBannerImages() {
 }
 
 export async function createHomeBannerImage(imageUrl: string, linkUrl: string) {
-  const supabase = await createClient()
-  const isAdmin = await checkAdminAuth(supabase)
+  const authClient = await createClient()
+  const isAdmin = await checkAdminAuth(authClient)
   if (!isAdmin) return { success: false, error: 'Unauthorized' }
+  // RLS rejects the admin session, so write with the service-role client
+  const supabase = createAdminClient()
 
   const { count } = await supabase
     .from('home_banner_images')
@@ -95,9 +100,11 @@ export async function createHomeBannerImage(imageUrl: string, linkUrl: string) {
 }
 
 export async function updateHomeBannerImageLink(id: string, linkUrl: string) {
-  const supabase = await createClient()
-  const isAdmin = await checkAdminAuth(supabase)
+  const authClient = await createClient()
+  const isAdmin = await checkAdminAuth(authClient)
   if (!isAdmin) return { success: false, error: 'Unauthorized' }
+  // RLS rejects the admin session, so write with the service-role client
+  const supabase = createAdminClient()
 
   const { error } = await supabase
     .from('home_banner_images')
@@ -112,9 +119,11 @@ export async function updateHomeBannerImageLink(id: string, linkUrl: string) {
 }
 
 export async function toggleHomeBannerImageStatus(id: string, isActive: boolean) {
-  const supabase = await createClient()
-  const isAdmin = await checkAdminAuth(supabase)
+  const authClient = await createClient()
+  const isAdmin = await checkAdminAuth(authClient)
   if (!isAdmin) return { success: false, error: 'Unauthorized' }
+  // RLS rejects the admin session, so write with the service-role client
+  const supabase = createAdminClient()
 
   const { error } = await supabase
     .from('home_banner_images')
@@ -129,9 +138,11 @@ export async function toggleHomeBannerImageStatus(id: string, isActive: boolean)
 }
 
 export async function deleteHomeBannerImage(id: string) {
-  const supabase = await createClient()
-  const isAdmin = await checkAdminAuth(supabase)
+  const authClient = await createClient()
+  const isAdmin = await checkAdminAuth(authClient)
   if (!isAdmin) return { success: false, error: 'Unauthorized' }
+  // RLS rejects the admin session, so write with the service-role client
+  const supabase = createAdminClient()
 
   const { error } = await supabase
     .from('home_banner_images')
@@ -182,9 +193,11 @@ export async function getPromoPopupSettings(): Promise<PromoPopupConfig> {
 }
 
 export async function updatePromoPopupSettings(config: Partial<PromoPopupConfig>) {
-  const supabase = await createClient()
-  const isAdmin = await checkAdminAuth(supabase)
+  const authClient = await createClient()
+  const isAdmin = await checkAdminAuth(authClient)
   if (!isAdmin) return { success: false, error: 'Unauthorized' }
+  // RLS rejects the admin session, so write with the service-role client
+  const supabase = createAdminClient()
 
   const current = await getPromoPopupSettings()
   const nextConfig = { ...current, ...config }

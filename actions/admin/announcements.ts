@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 
 export type AnnouncementMessage = {
@@ -131,10 +132,11 @@ export async function getAnnouncementBannerSettings(): Promise<AnnouncementBanne
 }
 
 export async function updateAnnouncementBannerSettings(config: Partial<AnnouncementBannerConfig>) {
-  const supabase = await createClient()
-  
-  const isAdmin = await checkAdminAuth(supabase)
+  const authClient = await createClient()
+  const isAdmin = await checkAdminAuth(authClient)
   if (!isAdmin) return { success: false, error: 'Unauthorized' }
+  // RLS rejects the admin session, so write with the service-role client
+  const supabase = createAdminClient()
 
   const current = await getAnnouncementBannerSettings()
   const nextConfig = { ...current, ...config }

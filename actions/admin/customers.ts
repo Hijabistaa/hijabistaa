@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 
 export type AdminActionResult = {
@@ -35,7 +36,6 @@ export async function getCustomers() {
   if (!isAdmin) return []
 
   // Use admin client to bypass RLS
-  const { createAdminClient } = await import('@/lib/supabase/admin')
   const adminClient = createAdminClient()
   const { data: customers } = await adminClient
     .from('customers')
@@ -49,10 +49,11 @@ export async function toggleCustomerStatus(
   id: string,
   isActive: boolean
 ): Promise<AdminActionResult> {
-  const supabase = await createClient()
-
-  const isAdmin = await checkAdminAuth(supabase)
+  const authClient = await createClient()
+  const isAdmin = await checkAdminAuth(authClient)
   if (!isAdmin) return { error: 'Unauthorized' }
+  // RLS rejects the admin session, so write with the service-role client
+  const supabase = createAdminClient()
 
   const { error } = await supabase
     .from('customers')
